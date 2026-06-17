@@ -1,0 +1,38 @@
+# Virtual Environment
+viosense_env/
+
+# Database
+database/viosense.db
+
+# Model weights (too large)
+models/
+runs/
+
+# Evidence PDFs (generated files)
+evidence/reports/
+
+# Static files
+static/
+
+# Test images
+test_traffic.jpg
+test_image.jpg
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# VS Code
+.vscode/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Logs
+*.log
+
+# Environment variables
+.env
