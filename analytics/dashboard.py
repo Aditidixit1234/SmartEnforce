@@ -7,7 +7,10 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from database.models import get_all_violations, get_safety_index
+from database.models import get_all_violations, get_safety_index, init_db
+
+os.makedirs("database", exist_ok=True)
+init_db()
 
 st.set_page_config(
     page_title="VioSense - AI Traffic Enforcement",
@@ -385,7 +388,6 @@ elif page == "System Architecture":
     st.caption("End-to-end AI-powered traffic violation detection pipeline")
     st.markdown("---")
 
-    # Pipeline diagram
     st.markdown("### Detection Pipeline")
     pipeline_steps = [
         "📷  Video / Image Input",
@@ -400,15 +402,12 @@ elif page == "System Architecture":
         "🔮  Hotspot Prediction (Historical pattern analysis)",
         "🚔  Officer Deployment Planner (AI-recommended patrol zones)",
     ]
-
     for i, step in enumerate(pipeline_steps):
         st.markdown(f"**{step}**")
         if i < len(pipeline_steps) - 1:
             st.markdown("&emsp;&emsp;↓")
 
     st.markdown("---")
-
-    # Tech Stack
     st.markdown("### Tech Stack")
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -431,8 +430,6 @@ elif page == "System Architecture":
         st.markdown("- XGBoost (Prediction)")
 
     st.markdown("---")
-
-    # Performance Metrics
     st.markdown("### Model Performance Metrics")
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("mAP50", "60.5%")
@@ -441,8 +438,6 @@ elif page == "System Architecture":
     col4.metric("Inference Speed", "70ms/frame")
 
     st.markdown("---")
-
-    # Current vs Future
     col1, col2 = st.columns(2)
     with col1:
         st.error("**Current Prototype Scope**")
@@ -451,7 +446,6 @@ elif page == "System Architecture":
         st.markdown("- Simulated plate numbers (demo)")
         st.markdown("- CPU inference only")
         st.markdown("- Rule-based violation logic")
-
     with col2:
         st.success("**Future Enhancements**")
         st.markdown("- Real ANPR / OCR integration")
