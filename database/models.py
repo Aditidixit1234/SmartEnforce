@@ -142,10 +142,14 @@ def get_all_violations():
     return rows
 
 def update_location_safety(location: str, severity: float):
-    """Update safety score for a location"""
+    """Update safety score for a location - realistic scoring"""
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    # Start from 100, deduct based on severity
+    # Each violation deducts proportionally
+    deduction = severity * 2  # max 20 points per violation
 
     cursor.execute('''
         INSERT INTO locations
@@ -153,10 +157,21 @@ def update_location_safety(location: str, severity: float):
         VALUES (?, 1, ?, ?)
         ON CONFLICT(location_name) DO UPDATE SET
             total_violations = total_violations + 1,
-            safety_score = MAX(0, safety_score - ?),
+            safety_score = MAX(20, MIN(95,
+                CASE
+                    WHEN safety_score - ? < 20 THEN 20
+                    ELSE safety_score - ?
+                END
+            )),
             last_updated = ?
-    ''', (location, max(0, 100 - severity*10),
-          timestamp, severity, timestamp))
+    ''', (
+        location,
+        max(20, 95 - deduction),
+        timestamp,
+        deduction * 0.3,  # smaller deduction per violation
+        deduction * 0.3,
+        timestamp
+    ))
 
     conn.commit()
     conn.close()
