@@ -71,12 +71,21 @@ def add_demo_data():
         ("No Seatbelt", 6.8, "HIGH", "car"),
         ("Stop Line Violation", 6.0, "MEDIUM", "motorcycle"),
     ]
-    # Only 2 plates so repeats are guaranteed with 5 records
-    plates = ["KA01AB1234", "MH02CD5678"]
-    for i in range(5):
+    # 6 plates total: first 3 are repeat offenders (used multiple times),
+    # rest are one-time plates - gives good chart variety AND visible repeats
+    repeat_plates = ["KA01AB1234", "MH02CD5678", "TN04GH3456"]
+    one_time_plates = ["DL03EF9012", "UP05IJ7890", "KA06KL2345", "WB07MN1122", "AP08PQ3344"]
+
+    total_records = 25
+
+    for i in range(total_records):
         v = random.choice(violations)
         loc = random.choice(locations)
-        plate = plates[i % len(plates)]  # alternate plates to force repeats
+        # ~60% chance of using a repeat-offender plate, ensures clear repeats
+        if random.random() < 0.6:
+            plate = random.choice(repeat_plates)
+        else:
+            plate = random.choice(one_time_plates)
         save_violation({
             'vehicle_type': v[3],
             'plate_number': plate,
