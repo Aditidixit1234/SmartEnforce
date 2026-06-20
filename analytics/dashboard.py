@@ -100,10 +100,10 @@ def clear_data():
     conn.close()
 
 def get_timestamp_from_frames(frames_seen, fps=25):
-    total_seconds = frames_seen // fps
-    minutes = total_seconds // 60
+    total_seconds = frames_seen / fps
+    minutes = int(total_seconds // 60)
     seconds = total_seconds % 60
-    return f"{minutes:02d}:{seconds:02d}"
+    return f"{minutes:02d}:{seconds:05.2f}"
 
 # Header
 st.markdown('<div class="main-header">VioSense AI Traffic Enforcement Platform</div>', unsafe_allow_html=True)
@@ -545,8 +545,9 @@ elif page == "Video Tracking":
                     st.video(results['output_video'])
                 if results['violations']:
                     st.markdown("### Violations Found")
+                    video_fps = results.get('fps', 25)
                     for i, v in enumerate(results['violations']):
-                        timestamp = get_timestamp_from_frames(v['frames_seen'])
+                        timestamp = get_timestamp_from_frames(v['frames_seen'], fps=video_fps)
                         confidence_score = round(v['confidence'] / 100, 2)
                         with st.expander(f"Vehicle ID #{v['track_id']} — {v['violation_type']}"):
                             col1, col2, col3, col4 = st.columns(4)
