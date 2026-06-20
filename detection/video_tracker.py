@@ -102,10 +102,10 @@ def track_video(video_path, output_path='static/tracked_output.mp4'):
     cap.release()
     out.release()
 
-    # Only report violations that are reliably tracked:
-    # at least 8 frames AND at least 50% confidence
-    MIN_FRAMES = 8
-    MIN_CONFIDENCE = 50.0
+    # Only report violations that are reasonably tracked:
+    # at least 3 frames AND at least 30% confidence
+    MIN_FRAMES = 3
+    MIN_CONFIDENCE = 30.0
 
     for tid, vehicle in tracked_vehicles.items():
         if (vehicle['violation']
