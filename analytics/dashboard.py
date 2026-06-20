@@ -19,6 +19,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+if 'app_mode' not in st.session_state:
+    st.session_state.app_mode = 'live'
+
 st.markdown("""
 <style>
     .main-header {
@@ -54,17 +57,6 @@ def load_data():
     conn.close()
     return df, locations_df, vehicles_df
 
-def get_mode():
-    try:
-        conn = sqlite3.connect("database/viosense.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM violations")
-        count = cursor.fetchone()[0]
-        conn.close()
-        return count
-    except:
-        return 0
-
 def add_demo_data():
     sys.path.append('.')
     from database.models import save_violation, update_location_safety
@@ -80,7 +72,7 @@ def add_demo_data():
         ("Stop Line Violation", 6.0, "MEDIUM", "motorcycle"),
     ]
     plates = ["KA01AB1234", "MH02CD5678", "DL03EF9012", "TN04GH3456", "UP05IJ7890", "KA06KL2345"]
-    for _ in range(30):
+    for _ in range(5):
         v = random.choice(violations)
         loc = random.choice(locations)
         plate = random.choice(plates)
@@ -136,21 +128,23 @@ with st.sidebar:
 
     st.markdown("---")
 
-    count = get_mode()
-    if count == 0:
+    # Mode badge now uses session_state, NOT database row count
+    if st.session_state.app_mode == 'live':
         st.markdown("## 🟢 LIVE MODE")
         st.caption("Real detections only")
     else:
         st.markdown("## 🔵 DEMO MODE")
-        st.caption(f"Sample data: {count} records")
+        st.caption("Sample data loaded")
 
     st.markdown("### Switch Mode")
     col1, col2 = st.columns(2)
     with col1:
         if st.button("Load Demo", type="primary", use_container_width=True):
+            st.session_state.app_mode = 'demo'
             add_demo_data()
     with col2:
         if st.button("Live Mode", type="secondary", use_container_width=True):
+            st.session_state.app_mode = 'live'
             clear_data()
             st.success("Switched to Live Mode!")
             st.rerun()
@@ -161,6 +155,7 @@ with st.sidebar:
 
 # Load data
 df, locations_df, vehicles_df = load_data()
+count = len(df)
 
 # PAGE 1: Live Dashboard
 if page == "Live Dashboard":
@@ -460,7 +455,7 @@ elif page == "System Architecture":
 # PAGE 8: Upload & Detect
 elif page == "Upload & Detect":
     st.subheader("Upload Traffic Image for Analysis")
-    if count == 0:
+    if st.session_state.app_mode == 'live':
         st.success("🟢 **LIVE MODE** — Upload real traffic images for analysis. Results are generated using the current prototype detection pipeline.")
     else:
         st.info("🔵 **DEMO MODE** — Currently showing sample data. Switch to Live Mode for real detections.")
@@ -495,7 +490,6 @@ elif page == "Upload & Detect":
                         col1.metric("Vehicle", "Motorcycle")
                         col2.metric("Violation", r['violation'])
                         col3.metric("Confidence", f"{round(random.uniform(82, 96), 1)}%")
-                        st.info(f"Plate Number: {r['plate']}")
                         st.info(f"Evidence ID: {r['violation_id']}")
                         st.info(f"Location: {location}")
                         if os.path.exists(r['pdf']):

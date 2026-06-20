@@ -37,12 +37,14 @@ def predict_hotspots():
             violation_count = len(loc_data)
             avg_severity = loc_data['severity'].mean() if len(loc_data) > 0 else 5.0
         else:
-            violation_count = random.randint(1, 10)
-            avg_severity = random.uniform(4, 9)
+            violation_count = 0
+            avg_severity = 5.0
 
-        # Predict risk score
-        risk_score = min(10, (violation_count * 0.5) + (avg_severity * 0.5))
-        risk_score = round(risk_score + random.uniform(-0.5, 0.5), 1)
+        # Predict risk score - guarantee a minimum baseline so it's never flat 0
+        base_risk = (violation_count * 0.8) + (avg_severity * 0.4)
+        risk_score = min(10, max(1.5, base_risk))
+        risk_score = round(risk_score + random.uniform(-0.3, 0.5), 1)
+        risk_score = max(1.0, min(10.0, risk_score))
 
         if risk_score >= 8:
             risk_level = "CRITICAL"
@@ -61,10 +63,13 @@ def predict_hotspots():
             officers = 1
             emoji = "🟢"
 
+        # Expected violations tomorrow: based on today's count + small growth factor
+        predicted_violations = violation_count + random.randint(0, 2) if violation_count > 0 else random.randint(0, 1)
+
         predictions.append({
             'location': location,
             'emoji': emoji,
-            'predicted_violations': violation_count + random.randint(0, 3),
+            'predicted_violations': predicted_violations,
             'risk_score': risk_score,
             'risk_level': risk_level,
             'officers_needed': officers,
