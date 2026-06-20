@@ -71,11 +71,12 @@ def add_demo_data():
         ("No Seatbelt", 6.8, "HIGH", "car"),
         ("Stop Line Violation", 6.0, "MEDIUM", "motorcycle"),
     ]
-    plates = ["KA01AB1234", "MH02CD5678", "DL03EF9012", "TN04GH3456", "UP05IJ7890", "KA06KL2345"]
-    for _ in range(5):
+    # Only 2 plates so repeats are guaranteed with 5 records
+    plates = ["KA01AB1234", "MH02CD5678"]
+    for i in range(5):
         v = random.choice(violations)
         loc = random.choice(locations)
-        plate = random.choice(plates)
+        plate = plates[i % len(plates)]  # alternate plates to force repeats
         save_violation({
             'vehicle_type': v[3],
             'plate_number': plate,
