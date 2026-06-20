@@ -23,7 +23,9 @@ def track_video(video_path, output_path='static/tracked_output.mp4'):
     cap = cv2.VideoCapture(video_path)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    fps = int(cap.get(cv2.CAP_PROP_FPS)) or 25
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    if not fps or fps <= 1:
+        fps = 25
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -70,17 +72,13 @@ def track_video(video_path, output_path='static/tracked_output.mp4'):
                         'first_frame': frame_count,
                         'last_frame': frame_count,
                         'confidence': confidence,
-                        'max_confidence': confidence,
                         'frames_seen': 1,
                         'violation': None
                     }
                 else:
                     tracked_vehicles[track_id]['last_frame'] = frame_count
                     tracked_vehicles[track_id]['frames_seen'] += 1
-                    # keep running best confidence, not the last-seen one
-                    if confidence > tracked_vehicles[track_id]['max_confidence']:
-                        tracked_vehicles[track_id]['max_confidence'] = confidence
-                    tracked_vehicles[track_id]['confidence'] = tracked_vehicles[track_id]['max_confidence']
+                    tracked_vehicles[track_id]['confidence'] = confidence
 
                 if vehicle_type == 'motorcycle':
                     tracked_vehicles[track_id]['violation'] = 'No Helmet'
@@ -102,15 +100,9 @@ def track_video(video_path, output_path='static/tracked_output.mp4'):
     cap.release()
     out.release()
 
-    # Only report violations that are reasonably tracked:
-    # at least 3 frames AND at least 30% confidence
-    MIN_FRAMES = 3
-    MIN_CONFIDENCE = 30.0
-
+    # Same threshold as the version that originally worked: just 3 frames minimum
     for tid, vehicle in tracked_vehicles.items():
-        if (vehicle['violation']
-                and vehicle['frames_seen'] >= MIN_FRAMES
-                and vehicle['confidence'] >= MIN_CONFIDENCE):
+        if vehicle['violation'] and vehicle['frames_seen'] >= 3:
             violations_detected.append({
                 'track_id': tid,
                 'vehicle_type': vehicle['type'],
@@ -124,7 +116,7 @@ def track_video(video_path, output_path='static/tracked_output.mp4'):
             })
 
     print(f"Tracked {len(tracked_vehicles)} unique vehicles")
-    print(f"Found {len(violations_detected)} reliable violations (min {MIN_FRAMES} frames, {MIN_CONFIDENCE}% confidence)")
+    print(f"Found {len(violations_detected)} violations")
 
     return {
         'total_vehicles': len(tracked_vehicles),
@@ -137,4 +129,3 @@ def track_video(video_path, output_path='static/tracked_output.mp4'):
 
 if __name__ == "__main__":
     print("Video tracker ready!")
-    print("Supports: MP4, AVI, MOV")
